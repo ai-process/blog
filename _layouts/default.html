@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% if page.title %}{{ page.title }} · {{ site.title }}{% else %}{{ site.title }}{% endif %}</title>
+  <meta name="description" content="{% if page.description %}{{ page.description }}{% else %}{{ site.description }}{% endif %}">
+  <link rel="stylesheet" href="{{ '/assets/css/style.css' | relative_url }}">
+  <link rel="alternate" type="application/atom+xml" title="{{ site.title }}" href="{{ '/feed.xml' | relative_url }}">
+  {% seo %}
+</head>
+<body>
+  <header class="site-header">
+    <div class="container header-container">
+      <div class="site-brand">
+        <a class="brand-title" href="{{ '/' | relative_url }}">llm-proxy <span class="brand-badge">dev blog</span></a>
+      </div>
+      <nav class="site-nav">
+        <a href="{{ '/' | relative_url }}">Posts</a>
+        <a href="{{ '/about' | relative_url }}">About</a>
+        <a href="https://github.com/ai-process/llm-proxy" target="_blank" rel="noopener">llm-proxy</a>
+        <a href="https://github.com/ai-process/light-tokenmeter" target="_blank" rel="noopener">tokenmeter</a>
+        <a href="https://github.com/ai-process" target="_blank" rel="noopener">GitHub</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="site-main">
+    <div class="container">
+      {{ content }}
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-container">
+      <p>&copy; {{ 'now' | date: "%Y" }} AI Process Tools · Open source engineering blog.</p>
+      <div class="footer-links">
+        <a href="{{ '/feed.xml' | relative_url }}">RSS Feed</a> ·
+        <a href="https://github.com/ai-process/blog" target="_blank" rel="noopener">Blog Repo</a> ·
+        <a href="https://github.com/ai-process/llm-proxy" target="_blank" rel="noopener">llm-proxy</a> ·
+        <a href="https://github.com/ai-process/light-tokenmeter" target="_blank" rel="noopener">light-tokenmeter</a>
+      </div>
+    </div>
+  </footer>
+</body>
+</html>

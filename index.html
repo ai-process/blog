@@ -1,0 +1,29 @@
+---
+layout: default
+title: Engineering Blog
+---
+
+<section class="hero">
+  <h1>Engineering Blog</h1>
+  <p>Production patterns, architectural deep-dives, and practical tutorials for self-hosted LLM gateways, token metering, and AI infrastructure.</p>
+  <span class="cadence-badge">📅 Published every 2 days with updates & practical guides</span>
+</section>
+
+<section class="posts-list">
+  {% for post in site.posts %}
+    <article class="post-card">
+      <div class="post-card-date">{{ post.date | date: "%B %d, %Y" }}</div>
+      <h2 class="post-card-title">
+        <a href="{{ post.url | relative_url }}">{{ post.title }}</a>
+      </h2>
+      <p class="post-card-excerpt">{{ post.description | default: post.excerpt | strip_html | truncatewords: 35 }}</p>
+      {% if post.tags %}
+        <div class="card-tags">
+          {% for tag in post.tags %}
+            <span class="tag">#{{ tag }}</span>
+          {% endfor %}
+        </div>
+      {% endif %}
+    </article>
+  {% endfor %}
+</section>

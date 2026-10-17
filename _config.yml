@@ -1,0 +1,27 @@
+# Site settings
+title: llm-proxy Dev Blog
+description: Engineering notes, production architecture patterns, and updates from the llm-proxy and tokenmeter team.
+url: "https://ai-process.github.io"
+baseurl: "/blog"
+
+# Author & social
+author:
+  name: AI Process Team
+  github: ai-process
+
+# Build settings
+markdown: kramdown
+highlighter: rouge
+permalink: /:year/:month/:day/:title/
+
+plugins:
+  - jekyll-feed
+  - jekyll-seo-tag
+
+# Exclude from build
+exclude:
+  - Gemfile
+  - Gemfile.lock
+  - README.md
+  - LICENSE
+  - vendor/
