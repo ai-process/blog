@@ -1,7 +1,7 @@
 ---
 layout: post
 title: "Why We Chose Go Over Python for Our LLM Gateway Infrastructure"
-date: 2026-10-17 16:00:00 +0000
+date: 2026-10-17 12:00:00 +0000
 reading_time: 7
 tags:
   - architecture
@@ -41,8 +41,8 @@ To evaluate the efficiency differences between compiled Go binaries and Python r
 ### Test Environment & Methodology
 
 * **Hardware & OS:** Linux x86_64, 4 vCPU, 8 GiB RAM, Docker/containerd.
-* **Software Versions:** `llm-proxy` (Go 1.26, commit `6882351`), `light-tokenmeter` (Go 1.26, commit `63ce070`), LiteLLM Proxy v1.50 (`ghcr.io/berriai/litellm:v1.50.0`, 4 Uvicorn workers).
-* **Workload:** Synthetic `k6` benchmark running at 1,000 requests per second against a local mock upstream (10 ms fixed response latency). This isolates pure gateway routing and multiplexing overhead from upstream provider variability.
+* **Software Versions:** `llm-proxy` (Go 1.26, commit `6882351`), `light-tokenmeter` (Go 1.26, commit `63ce070`), LiteLLM Proxy (`ghcr.io/berriai/litellm:main-latest` as of October 2026, 4 Uvicorn workers).
+* **Workload:** Synthetic `k6` benchmark running at 1,000 requests per second against a local mock upstream (10 ms fixed response latency). This isolates pure gateway routing and multiplexing overhead from upstream provider variability. *(Note: This test isolates routing overhead under short requests; memory under thousands of open concurrent streaming connections depends on network socket buffers and was not directly measured here.)*
 * **Telemetry:** Memory was recorded via Linux cgroup `memory.current` (capturing RSS, page cache, and kernel buffers).
 
 ### Comparison Table
@@ -94,7 +94,7 @@ However, scale-to-zero requires cold start latencies to be short enough that use
 
 When a Python gateway container starts from zero:
 1. **Registry Pull & Extraction:** Downloading ~800 MB compressed and extracting ~2.2 GB of container layers takes several seconds on a typical cluster backplane.
-2. **Module Imports & Initialization:** Python must locate, parse, and byte-compile vendor libraries (`openai`, `boto3`, `fastapi`, `pydantic`), and the ORM must initialize database connections. This phase typically takes 8 to 15 seconds before the HTTP server can mark its `/health/readiness` probe healthy.
+2. **Module Imports & Initialization:** Python must locate, parse, and import vendor libraries (`openai`, `boto3`, `fastapi`, `pydantic`), and the ORM must initialize database connections. This phase typically takes 8 to 15 seconds before the HTTP server can mark its `/health/readiness` probe healthy.
 
 If an interactive user sends a chat message and encounters a 10–15 second container startup delay, the application feels broken. Teams often respond by keeping minimum replica counts (`minReplicas: 1` or `2`) running 24/7, forfeiting scale-to-zero cost savings.
 
@@ -137,7 +137,7 @@ For teams building internal rapid prototypes or experimenting with dozens of exp
 | Dimension | Python Gateways (e.g. LiteLLM) | Go Gateways (ai-process Stack) |
 |---|---|---|
 | **Primary focus** | Fast prototyping, Day-0 SDK feature wrappers | High-throughput production routing, low-cost operations |
-| **Container image (uncompressed)** | ~2.2 GB (Python runtime, pip deps) | ~25–64 MB (Distroless / Alpine) |
+| **Container image (uncompressed)** | ~2.2 GB (Python runtime, pip deps) | ~25–64 MB (tokenmeter / slim; ~172 MB audio) |
 | **Container image (registry pull)** | ~800 MB compressed | ~8–18 MB compressed (tokenmeter / slim) |
 | **Active memory (1k RPS, cgroup)** | ~1.2–2.0 GiB (4 workers) | ~45–80 MiB (`llm-proxy`) / ~35–50 MiB (`tokenmeter`) |
 | **Container memory limit** | ~2.5–3.0 GiB | 256–512 MiB (`llm-proxy`) / 128–256 MiB (`tokenmeter`) |
