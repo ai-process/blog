@@ -2,7 +2,7 @@
 layout: post
 title: "Why We Chose Go Over Python for Our LLM Gateway Infrastructure"
 date: 2026-10-17 16:00:00 +0000
-reading_time: 6
+reading_time: 7
 tags:
   - architecture
   - performance
@@ -10,131 +10,150 @@ tags:
   - llm-proxy
   - tokenmeter
   - devops
-description: "An in-depth look at memory footprint, sub-60ms readiness, scale-to-zero economics, and why compiled Go binaries outperform Python gateways like LiteLLM in high-concurrency production deployments."
+description: "An architectural analysis of memory footprint, sub-60ms readiness, scale-to-zero economics, and why compiled Go binaries use a fraction of the resources of Python gateways like LiteLLM in high-concurrency production deployments."
 ---
 
-Python is the undisputed lingua franca of machine learning. From research notebooks in PyTorch to high-level framework wrappers like LangChain and LlamaIndex, the AI ecosystem was built on Python.
+Python is the primary language of machine learning. From research notebooks in PyTorch to high-level framework wrappers like LangChain and LlamaIndex, the modern AI ecosystem was built on Python.
 
-When developers build their first prototype against OpenAI or Anthropic APIs, Python is the natural first choice. But when an engineering team transitions from prototyping to running central platform infrastructure—a unified gateway that routes millions of LLM requests across multiple microservices, handles thousands of concurrent streaming connections, manages cryptographic keys, and meters token budgets—the engineering requirements shift from data science to network systems programming.
+When developers build their first prototype against OpenAI or Anthropic APIs, Python is the natural choice. But when an engineering team transitions from prototyping to running central platform infrastructure—a gateway that routes millions of LLM requests across microservices, multiplexes thousands of concurrent connections, enforces spend budgets, and records token telemetry—the requirements shift from model experimentation to network systems engineering.
 
-In this deep dive, we explore why we built our open-source AI infrastructure stack—[**llm-proxy**](https://github.com/ai-process/llm-proxy) and [**light-tokenmeter**](https://github.com/ai-process/light-tokenmeter)—in **Go** instead of Python, comparing its resource footprint, concurrency model, and serverless economics with popular Python solutions like LiteLLM Proxy.
+In this article, we look at why we built our open-source AI infrastructure stack—[**llm-proxy**](https://github.com/ai-process/llm-proxy) and [**light-tokenmeter**](https://github.com/ai-process/light-tokenmeter)—in **Go** instead of Python, comparing resource footprint, concurrency models, and operational trade-offs against popular Python solutions like LiteLLM Proxy.
 
 ---
 
 ## 1. The Anatomy of an LLM Gateway Workload
 
-An LLM gateway operates under vastly different constraints than an inference engine or a model training script:
+An LLM gateway operates under different constraints than an inference server or a training job:
 
-* **I/O Bound, Not Compute Bound:** The gateway does not compute tensor multiplications. Its responsibilities are network multiplexing, header transformation, protocol conversion (gRPC to HTTP/REST), rate limiting, and request routing.
-* **Long-Lived Streaming Connections:** Generating a 1,000-token completion over Server-Sent Events (SSE) or gRPC streams often takes between 5 to 30 seconds. At high traffic volumes (e.g. 1,000 requests per second), the gateway must sustain tens of thousands of concurrent open TCP connections.
-* **Low Gateway Latency Overhead:** Because upstream model latency is inherently high, the gateway itself must add negligible overhead (sub-millisecond routing and queuing).
-* **Strict Cost and Density Constraints:** Infrastructure proxies run 24/7 across multiple environments (production, staging, developer preview clusters). In high-density Kubernetes clusters or serverless environments, operational memory overhead translates directly into cloud hosting costs.
+* **I/O Bound Network Multiplexing:** The gateway does not run neural networks. Its responsibilities are connection pooling, header transformation, protocol conversion (gRPC to HTTP/REST), rate limiting, and fallback routing.
+* **Long-Lived Streaming Connections:** Generating a completion over Server-Sent Events (SSE) or gRPC streams often takes 5 to 30 seconds. At high traffic volumes, a gateway must sustain 5,000 to 30,000 concurrent open TCP connections without exhausting file descriptors or thread memory.
+* **Low Gateway Latency:** Because upstream model latency is high (hundreds of milliseconds to seconds), the gateway itself must add minimal overhead—ideally single-digit milliseconds for routing, limits, and telemetry dispatch.
+* **Density and Cloud Cost:** Gateways run continuously across staging, preview, and production clusters. In Kubernetes clusters and serverless environments, operational memory overhead translates directly into cloud hosting costs.
 
-In a Python-based gateway (such as LiteLLM running on FastAPI and Uvicorn), handling this workload requires multiple operating system worker processes to utilize multi-core machines, due to the Global Interpreter Lock (GIL). Each worker process imports heavy vendor SDKs (`openai`, `boto3`, `google-genai`), database ORMs (such as Prisma), and serialization frameworks (`pydantic`), replicating hundreds of megabytes of baseline memory per process.
+In a Python-based gateway (such as LiteLLM running on FastAPI and Uvicorn), handling concurrent traffic across a multi-core machine requires running multiple operating system worker processes to bypass the Global Interpreter Lock (GIL). Each worker process imports heavy vendor SDKs (`openai`, `boto3`, `google-genai`), database ORMs (such as Prisma), and serialization frameworks (`pydantic`), consuming over 100 MiB of baseline memory per worker process before serving any traffic.
 
 ---
 
 ## 2. Resource Footprint: The Benchmark Numbers
 
-To quantify the efficiency differences between compiled Go binaries and Python runtimes, we evaluated `llm-proxy` and `light-tokenmeter` against LiteLLM Proxy in a synthetic benchmark scenario.
+To evaluate the efficiency differences between compiled Go binaries and Python runtimes, we tested `llm-proxy` and `light-tokenmeter` against LiteLLM Proxy in a synthetic benchmark.
 
 ### Test Environment & Methodology
 
-* **Environment:** Linux x86_64, 4 vCPU, 8 GiB RAM, Docker/containerd.
-* **Software Versions:** `llm-proxy` (Go 1.26), `light-tokenmeter` (Go 1.26), LiteLLM Proxy (`ghcr.io/berriai/litellm:main-latest`, 4 Uvicorn workers).
-* **Workload:** Synthetic `k6` benchmark running at 1,000 requests per second against a 10 ms mock upstream (measuring pure gateway overhead without upstream model variance). Memory was tracked via Linux cgroup `memory.current`.
+* **Hardware & OS:** Linux x86_64, 4 vCPU, 8 GiB RAM, Docker/containerd.
+* **Software Versions:** `llm-proxy` (Go 1.26, commit `6882351`), `light-tokenmeter` (Go 1.26, commit `63ce070`), LiteLLM Proxy (`ghcr.io/berriai/litellm:main-latest`, 4 Uvicorn workers).
+* **Workload:** Synthetic `k6` benchmark running at 1,000 requests per second against a local mock upstream (10 ms fixed response latency). This isolates pure gateway routing and multiplexing overhead from upstream provider variability.
+* **Telemetry:** Memory was recorded via Linux cgroup `memory.current` (capturing RSS, page cache, and kernel buffers).
 
 ### Comparison Table
 
+LiteLLM combines routing and spend tracking into a single container. In the `ai-process` architecture, routing (`llm-proxy`) and token accounting (`light-tokenmeter`) are split into two independent services. Both are shown below, along with the combined footprint.
+
 | Metric | `llm-proxy` (Go) | `light-tokenmeter` (Go) | LiteLLM Proxy (Python) | Difference (`llm-proxy` vs LiteLLM) |
 |---|---|---|---|---|
-| **Docker image size (uncompressed)** | ~64 MB (slim) / ~172 MB (audio) | ~25–26 MB (distroless) | ~2.2 GB | ~92–97% smaller disk footprint |
-| **Idle memory (`memory.current`)** | ~25–35 MiB | ~18–25 MiB | ~400–600 MiB | ~11–24x less idle memory |
+| **Docker image size (uncompressed)** | ~64 MB (slim) / ~172 MB (audio) | ~25–26 MB (distroless) | ~2.2 GB (~800 MB pull) | ~92–97% smaller disk footprint |
+| **Idle memory (`memory.current`)** | ~25–35 MiB | ~18–25 MiB | ~400–600 MiB (4 workers) | ~11–24x less idle memory |
 | **Active load memory (1k RPS)** | ~45–80 MiB | ~35–50 MiB | ~1.2–2.0 GiB (4 workers) | ~15–46x less memory under load |
-| **Time to readiness (`/readyz` 200)** | ~30–60 ms (schema applied) | ~20–40 ms (schema applied) | 8–15 s (`/health/readiness`) | ~130–500x faster readiness |
+| **Time to readiness (`/readyz` 200)** | ~30–60 ms (warm local DB) | ~20–40 ms (warm local DB) | 8–15 s (`/health/readiness`) | ~130–500x faster readiness |
 | **Concurrency model** | Goroutines across all cores | Goroutines across all cores | Multiple OS processes + asyncio | Single process; no per-worker duplication |
-| **Recommended container limit** | 256–512 MiB | 128–256 MiB | ~2.5–3 GiB | ~5–12x lower memory reservation |
+| **Recommended container limit** | 256–512 MiB | 128–256 MiB | ~2.5–3.0 GiB | ~5–12x lower memory reservation |
+
+Even combining `llm-proxy` and `light-tokenmeter` on the same host (~80–130 MiB total memory under 1,000 RPS), the dual-service Go stack consumes less than one tenth of the memory required by a 4-worker Python gateway.
 
 ---
 
-## 3. Concurrency and Memory Architecture: Goroutines vs Multi-Process Workers
+## 3. Concurrency and Memory Architecture
 
-Why does Python require 1.5–2 GiB under moderate load, while Go stays comfortably below 80 MiB?
+Why does Python require 1.2–2.0 GiB under load, while Go stays below 80 MiB?
 
 ### The Multi-Process Memory Penalty
 
-In Python, achieving high throughput across 4 CPU cores necessitates spawning 4 separate OS worker processes under Uvicorn or Gunicorn. Because each process runs an independent Python interpreter:
+In Python, taking advantage of 4 CPU cores requires 4 separate OS worker processes under Uvicorn or Gunicorn. Because each process runs an independent Python interpreter:
 
-1. **Duplicate Module Memory:** The standard library, third-party libraries, and internal caches are loaded into memory 4 times.
-2. **Duplicate Connection Pools:** Database connection pools and HTTP keep-alive connection pools are maintained separately per process.
-3. **Coarse Garbage Collection:** Python's reference counting and cyclic garbage collector operates independently per process, leading to asynchronous memory spikes.
+1. **Duplicate Library Overhead:** The standard library, third-party SDKs, and data models reside in memory 4 times.
+2. **Duplicate Connection Pools:** Database connection pools and HTTP keep-alive pools are maintained separately per worker process.
+3. **Memory Allocator Behavior:** Python's small-object allocator (`pymalloc`) often retains freed memory in arenas rather than returning pages to the operating system immediately, compounding memory usage across long-running worker processes.
 
-### Go's Lightweight Runtime
+### Go's Single-Process Concurrency
 
-In contrast, `llm-proxy` executes as a **single operating system process**. Go's runtime scheduler multiplexes tens of thousands of goroutines across OS threads:
+In contrast, `llm-proxy` runs as a **single operating system process**. Go's runtime scheduler distributes goroutines across available CPU threads:
 
-* **Tiny Goroutine Stacks:** Each goroutine starts with only ~2 KB of stack space, growing dynamically only when needed. Holding 10,000 active streaming requests requires only ~20–30 MiB of stack memory.
-* **Unified Connection Pooling:** A single `pgxpool` for PostgreSQL and a single `fasthttp` / `net/http` transport pool serve all incoming requests, eliminating redundant socket allocations.
-* **Precise Memory Limits with `GOMEMLIMIT`:** Go's runtime respects cgroup boundaries. By configuring `GOMEMLIMIT=200MiB` on a 256 MiB container, Go dynamically tunes GC frequency during traffic bursts, ensuring zero Out-Of-Memory (OOM) terminations without over-provisioning.
+* **Minimal Initial Goroutine Overhead:** Goroutines start with ~2 KB of stack space and expand dynamically. The Go runtime handles thousands of active connections without dedicating an OS thread to each socket.
+* **Shared Connection Pooling:** A single `pgxpool` for PostgreSQL and a shared `net/http.Transport` connection pool serve all incoming requests, eliminating redundant socket allocations.
+* **Memory Tuning with `GOMEMLIMIT`:** Go's runtime allows configuring a soft memory target via `GOMEMLIMIT`. By setting `GOMEMLIMIT=200MiB` on a 256 MiB container, Go's garbage collector runs more frequently when approaching the threshold, significantly reducing the likelihood of Out-Of-Memory (OOM) termination during unexpected traffic spikes.
 
 ---
 
 ## 4. The Scale-to-Zero and Serverless Advantage
 
-In modern cloud architectures, autoscaling workloads down to zero replicas during quiet periods (e.g. nights and weekends) is one of the most effective ways to reduce cloud expenditure. Frameworks like **Knative Serving**, **Google Cloud Run**, and Kubernetes **KEDA** make scale-to-zero accessible.
+In cloud architectures, scaling workloads down to zero replicas during idle periods (such as nights and weekends) is an effective way to control cloud spend. Frameworks like **Knative Serving**, **Google Cloud Run**, and Kubernetes **KEDA** automate this pattern.
 
-However, scale-to-zero is only viable if cold start latencies are imperceptible to end users.
+However, scale-to-zero requires cold start latencies to be short enough that users do not notice timeouts.
 
-### The Python Cold Start Dilemma
+### The Python Cold Start Challenge
 
-When a Python gateway container spins up from zero:
-1. **Registry Pull Time:** Downloading an uncompressed ~2.2 GB container image (or ~800 MB compressed) across the network takes several seconds, even on fast cluster backplanes.
-2. **Import Latency:** Python must discover, read, and byte-compile hundreds of modules (`import openai`, `import boto3`, `import fastapi`, `import prisma`). This phase alone typically takes 8 to 15 seconds before the HTTP server can begin accepting traffic.
+When a Python gateway container starts from zero:
+1. **Registry Pull & Extraction:** Downloading ~800 MB compressed and extracting ~2.2 GB of container layers takes several seconds on a typical cluster backplane.
+2. **Module Imports & Initialization:** Python must locate, parse, and byte-compile vendor libraries (`openai`, `boto3`, `fastapi`, `pydantic`), and the ORM must initialize database connections. This phase typically takes 8 to 15 seconds before the HTTP server can mark its `/health/readiness` probe healthy.
 
-For real-time user-facing chat applications, adding a 10–15 second cold start delay to the initial user prompt is unacceptable. Teams are forced to keep minimum replica counts (`minReplicas: 1` or `2`) running 24/7, defeating the purpose of scale-to-zero.
+If an interactive user sends a chat message and encounters a 10–15 second container startup delay, the application feels broken. Teams often respond by keeping minimum replica counts (`minReplicas: 1` or `2`) running 24/7, forfeiting scale-to-zero cost savings.
 
-### Instant Readiness with Go
+### Fast Readiness with Go
 
 With `llm-proxy` and `light-tokenmeter`:
-* **Rapid Image Pulls:** At ~25 MB for `light-tokenmeter` (distroless) and ~64 MB for `llm-proxy`, container images download in hundreds of milliseconds.
-* **Sub-60ms In-Process Readiness:** Go binaries have zero module loading overhead. The binary initializes configuration, sets up routing tables, connects to the database, and exposes healthy readiness endpoints (`/readyz`) within 30 to 60 milliseconds.
+* **Fast Image Pulls:** At ~25 MB for `light-tokenmeter` (distroless) and ~64 MB for `llm-proxy` (slim), container downloads complete in approximately one second on modern network backplanes.
+* **Sub-60ms In-Process Readiness:** Compiled Go binaries have no module import or byte-compilation phase. Once the binary starts, it parses its environment, verifies the local database connection, and marks `/readyz` healthy within 30 to 60 milliseconds (when migrations are already applied).
 
-While end-to-end serverless cold start also includes cloud scheduling and networking overhead, eliminating container bootstrap delays makes scale-to-zero a practical reality without degrading user experience.
+While end-to-end serverless cold start also includes cloud hypervisor scheduling and network attachment, eliminating application-level startup latency makes scale-to-zero practical for real-world traffic.
 
 ---
 
-## 5. Security & Attack Surface: Minimal Distroless Runtimes
+## 5. Security & Container Attack Surface
 
-Infrastructure gateways hold sensitive assets—most notably vendor API keys (OpenAI, Anthropic, Gemini, DeepSeek) and internal authentication tokens. A compromised gateway exposes your entire AI budget and upstream credentials.
+Infrastructure gateways store sensitive credentials: upstream provider API keys (OpenAI, Anthropic, Gemini, DeepSeek) and internal admin keys. A compromised gateway puts API budgets and downstream services at risk.
 
-Python containers inherently ship with a complete operating system userland: Python interpreters, package managers (`pip`), shell environments (`/bin/sh`, `/bin/bash`), and dozens of system libraries. In enterprise vulnerability scans (CVE scanners like Trivy, Grype, or Snyk), large Python base images regularly flag dozens of transitive CVEs in system packages unrelated to the gateway itself.
+The official LiteLLM Docker image is built on a full Debian environment containing package managers (`apt`), shells (`/bin/sh`, `/bin/bash`), and standard system utilities. In enterprise environments, container scanners (Trivy, Grype) frequently flag transitive CVEs in system libraries that the proxy itself never uses.
 
 In our stack:
-* **`light-tokenmeter`** is packaged on Google's `gcr.io/distroless/static-debian12:nonroot`. The image contains **only** the static Go binary, SSL certificates, and timezone data. There is no package manager, no shell, and no operating system utilities. The process runs under UID `65532:65532`. Even in the event of an arbitrary code execution vulnerability, an attacker has no shell to spawn and no filesystem tools to leverage.
-* **`llm-proxy`** is compiled into a lightweight Alpine container running under non-root user `appuser` (UID `10001`), keeping the attack surface minimal and verifiable.
+* **`light-tokenmeter`** runs on Google's `gcr.io/distroless/static-debian12:nonroot`. The image contains **only** the compiled static binary, CA certificates, and timezone data. There is no package manager, no shell, and no operating system utilities. The process runs under UID `65532:65532`. Even if an arbitrary code execution flaw were discovered, an attacker cannot spawn a shell or download tools using `curl` or `wget`.
+* **`llm-proxy`** runs as an unprivileged user (`appuser`, UID `10001`) on Alpine. We use Alpine for `llm-proxy` to allow installing optional shared libraries like `ffmpeg` on the audio build (`coyl/llm-proxy:audio`) for Gemini speech transcoding, while keeping the default slim image at ~64 MB.
 
 ---
 
-## 6. Summary: Right Tool for the Right Job
+## 6. Trade-Offs We Accepted
+
+Choosing Go for an LLM gateway is not without trade-offs. Python has distinct advantages in the AI ecosystem that teams should weigh:
+
+1. **Ecosystem & Day-0 Provider Support:** When model vendors launch new APIs or features, they release official Python SDKs first. A Python gateway can often wrap new vendor SDKs in hours. With Go, writing native adapters requires inspecting raw HTTP/gRPC contracts and implementing typed request/response structs by hand.
+2. **Dynamic Scripting & Community Extensions:** Python allows developers to write custom middleware, inline prompts, or dynamic Python evaluation rules with minimal boilerplate. Go requires static compilation, type safety, and structured configurations.
+3. **Code Verbosity:** Go's explicit error handling (`if err != nil`) and static typing require more lines of code compared to Python's concise dynamic syntax.
+
+For teams building internal rapid prototypes or experimenting with dozens of experimental LLM libraries, a Python gateway like LiteLLM offers rapid onboarding. For platform teams running shared production gateways where high throughput, memory density, scale-to-zero latency, and predictable operations matter most, Go is a better fit.
+
+---
+
+## 7. Summary
 
 | Dimension | Python Gateways (e.g. LiteLLM) | Go Gateways (ai-process Stack) |
 |---|---|---|
-| **Best suited for** | Rapid prototyping, Python-native SDK experimentation | High-throughput production routing, enterprise gateways |
-| **Typical Container Image** | ~800 MB–2.2 GB (Debian / Python / pip) | ~25–64 MB (Distroless / Alpine) |
-| **Memory per Node** | ~1.5–3.0 GiB (multi-process) | ~128–512 MiB (single process goroutines) |
-| **Readiness Latency** | 8–15 seconds | 30–60 milliseconds |
-| **Attack Surface** | Full OS userland & interpreter | Minimal static binary / distroless |
+| **Primary focus** | Fast prototyping, Day-0 SDK feature wrappers | High-throughput production routing, low-cost operations |
+| **Container image (uncompressed)** | ~2.2 GB (Debian, Python, pip) | ~25–64 MB (Distroless / Alpine) |
+| **Container image (registry pull)** | ~800 MB compressed | ~8–22 MB compressed (slim / tokenmeter) |
+| **Active memory (1k RPS, cgroup)** | ~1.2–2.0 GiB (4 workers) | ~45–80 MiB (`llm-proxy`) / ~35–50 MiB (`tokenmeter`) |
+| **Container memory limit** | ~2.5–3.0 GiB | 256–512 MiB (`llm-proxy`) / 128–256 MiB (`tokenmeter`) |
+| **In-process readiness latency** | 8–15 seconds | 30–60 milliseconds |
+| **Runtime environment** | Multi-process Python runtime | Single-process Go binary (goroutines) |
 
-Choosing Go for `llm-proxy` and `light-tokenmeter` was not about language dogma; it was an architectural decision driven by operational economics. By slashing memory requirements by 15–40x and container sizes by over 90%, teams can deploy enterprise-grade AI gateways and token accounting sinks on a fraction of the infrastructure budget.
+By reducing memory footprint by 15–46x and image sizes by over 90%, compiled Go gateways make self-hosting LLM infrastructure practical on standard, cost-effective cloud instances.
 
 ---
 
 ## What's Next?
 
 In upcoming posts, we will explore:
-* Configuring zero-downtime multi-vendor fallback chains across OpenAI, Anthropic, and Gemini.
-* High-throughput usage accounting with `light-tokenmeter` and ClickHouse OLAP aggregations.
-* Securing LLM credentials using AES-256-GCM envelope encryption and scoped API tokens.
+* Configuring multi-vendor fallback chains across OpenAI, Anthropic, and Gemini.
+* High-throughput usage accounting with `light-tokenmeter` and ClickHouse OLAP storage.
+* Protecting upstream LLM credentials using AES-256-GCM envelope encryption.
 
 Explore the repositories on GitHub:
 * [**llm-proxy**](https://github.com/ai-process/llm-proxy) — High-performance self-hosted LLM gateway.
