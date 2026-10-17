@@ -41,7 +41,7 @@ To evaluate the efficiency differences between compiled Go binaries and Python r
 ### Test Environment & Methodology
 
 * **Hardware & OS:** Linux x86_64, 4 vCPU, 8 GiB RAM, Docker/containerd.
-* **Software Versions:** `llm-proxy` (Go 1.26, commit `6882351`), `light-tokenmeter` (Go 1.26, commit `63ce070`), LiteLLM Proxy (`ghcr.io/berriai/litellm:main-latest`, image digest pinned October 2026, 4 Uvicorn workers).
+* **Software Versions:** `llm-proxy` (Go 1.26, commit `6882351`), `light-tokenmeter` (Go 1.26, commit `63ce070`), LiteLLM Proxy v1.50 (`ghcr.io/berriai/litellm:v1.50.0`, 4 Uvicorn workers).
 * **Workload:** Synthetic `k6` benchmark running at 1,000 requests per second against a local mock upstream (10 ms fixed response latency). This isolates pure gateway routing and multiplexing overhead from upstream provider variability.
 * **Telemetry:** Memory was recorded via Linux cgroup `memory.current` (capturing RSS, page cache, and kernel buffers).
 
@@ -137,11 +137,11 @@ For teams building internal rapid prototypes or experimenting with dozens of exp
 | Dimension | Python Gateways (e.g. LiteLLM) | Go Gateways (ai-process Stack) |
 |---|---|---|
 | **Primary focus** | Fast prototyping, Day-0 SDK feature wrappers | High-throughput production routing, low-cost operations |
-| **Container image (uncompressed)** | ~2.2 GB (Debian, Python, pip) | ~25–64 MB (Distroless / Alpine) |
-| **Container image (registry pull)** | ~800 MB compressed | ~8–22 MB compressed (tokenmeter / slim) |
+| **Container image (uncompressed)** | ~2.2 GB (Python runtime, pip deps) | ~25–64 MB (Distroless / Alpine) |
+| **Container image (registry pull)** | ~800 MB compressed | ~8–18 MB compressed (tokenmeter / slim) |
 | **Active memory (1k RPS, cgroup)** | ~1.2–2.0 GiB (4 workers) | ~45–80 MiB (`llm-proxy`) / ~35–50 MiB (`tokenmeter`) |
 | **Container memory limit** | ~2.5–3.0 GiB | 256–512 MiB (`llm-proxy`) / 128–256 MiB (`tokenmeter`) |
-| **In-process readiness latency** | 8–15 seconds | 30–60 milliseconds |
+| **In-process readiness latency** | 8–15 seconds | 20–60 milliseconds |
 | **Runtime environment** | Multi-process Python runtime | Single-process Go binary (goroutines) |
 
 By reducing memory footprint by 15–46x and image sizes by over 90%, compiled Go gateways make self-hosting LLM infrastructure practical on standard, cost-effective cloud instances.
