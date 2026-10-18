@@ -41,7 +41,7 @@ To evaluate the efficiency differences between compiled Go binaries and Python r
 ### Test Environment & Methodology
 
 * **Hardware & OS:** Linux x86_64, 4 vCPU, 8 GiB RAM, Docker/containerd.
-* **Software Versions:** `llm-proxy` (Go 1.26, commit `6882351`), `light-tokenmeter` (Go 1.26, commit `63ce070`), LiteLLM Proxy (`ghcr.io/berriai/litellm:main-latest` as of October 2026, 4 Uvicorn workers).
+* **Software Versions:** `llm-proxy` (Go 1.26, commit `6882351`), `light-tokenmeter` (Go 1.26, commit `63ce070`), LiteLLM Proxy (`ghcr.io/berriai/litellm:main-latest@sha256:ba7310069dc41ad9ef3a31c3c93cf0e60809b5523dc302b9f7129ee7424b42b4`, tested October 2026, 4 Uvicorn workers).
 * **Workload:** Synthetic `k6` benchmark running at 1,000 requests per second against a local mock upstream (10 ms fixed response latency). This isolates pure gateway routing and multiplexing overhead from upstream provider variability. *(Note: This test isolates routing overhead under short requests; memory under thousands of open concurrent streaming connections depends on network socket buffers and was not directly measured here.)*
 * **Telemetry:** Memory was recorded via Linux cgroup `memory.current` (capturing RSS, page cache, and kernel buffers).
 
@@ -54,7 +54,7 @@ LiteLLM combines routing and spend tracking into a single container. In the `ai-
 | **Docker image size (uncompressed)** | ~64 MB (~18 MB pull, slim) / ~172 MB (~55 MB pull, audio) | ~25–26 MB (~8 MB pull, distroless) | ~2.2 GB (~800 MB pull) | ~92–97% smaller disk footprint |
 | **Idle memory (`memory.current`)** | ~25–35 MiB | ~18–25 MiB | ~400–600 MiB (4 workers) | ~11–24x less idle memory |
 | **Active load memory (1k RPS)** | ~45–80 MiB | ~35–50 MiB | ~1.2–2.0 GiB (4 workers) | ~15–46x less memory under load |
-| **Time to readiness (`/readyz` 200)** | ~30–60 ms (warm local DB, migrations applied) | ~20–40 ms (warm local DB, migrations applied) | 8–15 s (`/health/readiness`) | ~130–500x faster readiness |
+| **Time to readiness (`/readyz` 200)** | ~30–60 ms (warm local DB, migrations applied) | ~20–40 ms (warm local DB, migrations applied) | 8–15 s (`/health/readiness`, warm local DB, schema applied) | ~130–500x faster readiness |
 | **Concurrency model** | Goroutines across all cores | Goroutines across all cores | Multiple OS processes + asyncio | Single process; no per-worker duplication |
 | **Recommended container limit** | 256–512 MiB | 128–256 MiB | ~2.5–3.0 GiB | ~5–12x lower memory reservation |
 
@@ -102,7 +102,7 @@ If an interactive user sends a chat message and encounters a 10–15 second cont
 
 With `llm-proxy` and `light-tokenmeter`:
 * **Fast Image Pulls:** At ~8 MB compressed for `light-tokenmeter` (distroless) and ~18 MB for `llm-proxy` (slim), container downloads complete in approximately one second on modern network backplanes.
-* **Sub-60ms In-Process Readiness:** Compiled Go binaries have no module import or byte-compilation phase. Once the binary starts, it parses its environment, verifies the local database connection, and marks `/readyz` healthy within 30 to 60 milliseconds (warm local DB, migrations applied).
+* **Sub-60ms In-Process Readiness:** Compiled Go binaries have no module import or byte-compilation phase. Once the binary starts, it parses its environment, verifies the local database connection, and marks `/readyz` healthy within 20 to 60 milliseconds (warm local DB, migrations applied).
 
 While end-to-end serverless cold start also includes cloud hypervisor scheduling and network attachment, eliminating application-level startup latency makes scale-to-zero practical for real-world traffic.
 
@@ -115,7 +115,7 @@ Infrastructure gateways store sensitive credentials: upstream provider API keys 
 The official LiteLLM Docker image ships with a full Python runtime environment, pip dependencies, and system utilities. In enterprise environments, container scanners (Trivy, Grype) frequently flag transitive CVEs in system libraries that the proxy itself never uses.
 
 In our stack:
-* **`light-tokenmeter`** runs on Google's `gcr.io/distroless/static-debian12:nonroot`. The image contains **only** the compiled static binary, CA certificates, and timezone data. There is no package manager, no shell, and no operating system utilities. The process runs under UID `65532:65532`. Even if an arbitrary code execution flaw were discovered, an attacker cannot spawn a shell or download tools using `curl` or `wget`.
+* **`light-tokenmeter`** runs on Google's `gcr.io/distroless/static-debian12:nonroot`. The image contains **only** the compiled static binary, CA certificates, and timezone data. There is no package manager, no shell, and no operating system utilities. The process runs under UID `65532:65532`. An attacker has no shell or package manager available to leverage post-compromise.
 * **`llm-proxy`** runs as an unprivileged user (`appuser`, UID `10001`) on Alpine. We use Alpine for `llm-proxy` to allow installing optional system packages like `ffmpeg` on the audio build (`coyl/llm-proxy:audio`) for Gemini speech transcoding, while keeping the default slim image at ~64 MB. While the Alpine image still includes BusyBox `/bin/sh` and `apk` (moving `llm-proxy` to pure distroless is on our roadmap), `light-tokenmeter` already achieves a zero-shell distroless posture.
 
 ---
@@ -138,13 +138,13 @@ For teams building internal rapid prototypes or experimenting with dozens of exp
 |---|---|---|
 | **Primary focus** | Fast prototyping, Day-0 SDK feature wrappers | High-throughput production routing, low-cost operations |
 | **Container image (uncompressed)** | ~2.2 GB (Python runtime, pip deps) | ~25–64 MB (tokenmeter / slim; ~172 MB audio) |
-| **Container image (registry pull)** | ~800 MB compressed | ~8–18 MB compressed (tokenmeter / slim) |
+| **Container image (registry pull)** | ~800 MB compressed | ~8–18 MB compressed (tokenmeter / slim; ~55 MB audio) |
 | **Active memory (1k RPS, cgroup)** | ~1.2–2.0 GiB (4 workers) | ~45–80 MiB (`llm-proxy`) / ~35–50 MiB (`tokenmeter`) |
 | **Container memory limit** | ~2.5–3.0 GiB | 256–512 MiB (`llm-proxy`) / 128–256 MiB (`tokenmeter`) |
 | **In-process readiness latency** | 8–15 seconds | 20–60 milliseconds |
 | **Runtime environment** | Multi-process Python runtime | Single-process Go binary (goroutines) |
 
-By reducing memory footprint by 15–46x and image sizes by over 90%, compiled Go gateways make self-hosting LLM infrastructure practical on standard, cost-effective cloud instances.
+By reducing memory footprint by roughly 9–25x for the combined stack (and 15–46x for the gateway alone) and image sizes by over 90%, compiled Go gateways make self-hosting LLM infrastructure practical on standard, cost-effective cloud instances.
 
 ---
 
