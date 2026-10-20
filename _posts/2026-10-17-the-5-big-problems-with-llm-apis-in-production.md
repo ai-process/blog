@@ -5,7 +5,7 @@ date: 2026-10-17 12:00:00 +0000
 reading_time: 5
 tags:
   - architecture
-  - llm-proxy
+  - ktms
   - tokenmeter
   - devops
 description: "From secret sprawl and rate limits to opaque bills and vendor downtime—an architectural overview of common LLM API challenges and practical self-hosted solutions."
@@ -15,7 +15,7 @@ When you start prototyping with Large Language Models, calling an API feels dece
 
 In development, it just works. But as soon as your prototype moves to production—serving thousands of concurrent users across multiple microservices—a familiar set of systemic problems begins to surface.
 
-In this inaugural post of our dev blog, we examine the five most common challenges engineering teams encounter when integrating LLM APIs, the abstract architectural patterns used to solve them, and how our open-source tools—[**llm-proxy**](https://github.com/ai-process/llm-proxy) and [**light-tokenmeter**](https://github.com/ai-process/light-tokenmeter)—implement those solutions.
+In this inaugural post of our dev blog, we examine the five most common challenges engineering teams encounter when integrating LLM APIs, the abstract architectural patterns used to solve them, and how our open-source tools—[**KTMS**](https://github.com/ai-process/ktms) (formerly llm-proxy) and [**light-tokenmeter**](https://github.com/ai-process/light-tokenmeter)—implement those solutions.
 
 ---
 
@@ -27,8 +27,8 @@ Hardcoding vendor SDKs (OpenAI, Anthropic, Google Gemini, DeepSeek) directly int
 ### The Abstract Solution: A Unified Gateway Layer
 Instead of having microservices communicate directly with external LLM APIs, place a gateway between your applications and the model providers. The gateway exposes a single protocol, normalizing requests and responses into a standard schema. Applications express *what* they need (e.g. reasoning quality or speed), and the gateway decides *which* model satisfies it.
 
-### How We Solve It: `llm-proxy` Dynamic Routing
-* **Unified Interface:** Applications speak to `llm-proxy` via a high-performance gRPC endpoint (`LLMProxyService`) or standard OpenAI-compatible HTTP endpoints (`/v1/chat/completions`).
+### How We Solve It: KTMS Dynamic Routing
+* **Unified Interface:** Applications speak to KTMS via a high-performance gRPC endpoint (`GatewayService`) or standard OpenAI-compatible HTTP endpoints (`/v1/chat/completions`).
 * **Effort-Based Routing:** Clients don't need to hardcode model names. They can request an effort level (`LOW`, `MEDIUM`, or `HIGH`) along with custom routing attributes. An ordered rule table evaluates the request and maps it to the optimal model.
 * **Zero-Downtime Rule Updates:** Rules can be altered at runtime over an admin RPC or web console without redeploying any application service.
 
@@ -43,8 +43,8 @@ External AI APIs suffer from periodic degradations, sudden capacity shortages, a
 1. **Fallback Chains:** When the primary model fails or returns a transient error, the gateway instantly attempts an equivalent fallback model from another provider without failing the client request.
 2. **Proactive Rate Limiting:** Enforce token-bucket or sliding-window rate limits locally before traffic ever leaves your infrastructure, preventing provider bans and unexpected throttles.
 
-### How We Solve It: `llm-proxy` Fallback & Redis Quotas
-* **Seamless Fallbacks:** If OpenAI returns a 5xx or rate limit error, `llm-proxy` immediately reroutes the request to Anthropic Claude or Gemini in the background according to your configured model chain.
+### How We Solve It: KTMS Fallback & Redis Quotas
+* **Seamless Fallbacks:** If OpenAI returns a 5xx or rate limit error, KTMS immediately reroutes the request to Anthropic Claude or Gemini in the background according to your configured model chain.
 * **Local Throttling:** Built-in Redis-backed limits enforce requests-per-minute and token budgets per API key and per end user before calling the vendor.
 
 ---
@@ -57,7 +57,7 @@ Distributing vendor API keys across dozens of developer machines, CI environment
 ### The Abstract Solution: Centralized Credential Vaulting
 Vendor credentials should live in a single encrypted vault accessible only to the proxy. Internal services receive scoped, internally minted tokens that authenticate only against the proxy.
 
-### How We Solve It: `llm-proxy` Encrypted Vendor Storage
+### How We Solve It: KTMS Encrypted Vendor Storage
 * **Encrypted at Rest:** Vendor API keys are stored in PostgreSQL encrypted with **AES-256-GCM**. Client applications never see or touch the raw vendor credentials.
 * **Scoped Internal Keys:** Admins mint client keys with specific permissions (such as `generate` or `admin`). If a client key is compromised, it can be revoked instantly without touching upstream vendor accounts.
 
@@ -72,8 +72,8 @@ A runaway agent loop or an unoptimized prompt can burn through a budget before a
 * **Pre-flight verification:** Check user or project quotas before dispatching expensive generations.
 * **Fine-grained telemetry sink:** Fire an immutable event for every single model invocation, recording tokens, cost, latency, project ID, user ID, and action identifier for instant OLAP analysis.
 
-### How We Solve It: `llm-proxy` + `light-tokenmeter`
-* **Pre-call Token Budgets:** `llm-proxy` checks daily token allocations per end user or client key before dispatching calls.
+### How We Solve It: KTMS + `light-tokenmeter`
+* **Pre-call Token Budgets:** KTMS checks daily token allocations per end user or client key before dispatching calls.
 * **Deep Usage Analytics with `light-tokenmeter`:** A dedicated, lightweight Go service that ingests usage events asynchronously via gRPC or HTTP. It supports PostgreSQL and ClickHouse, inserting events via fast batch `COPY`.
 * **Actionable Insights:** Query spend across dimensions to immediately discover *who is greedy and who is worthy*:
 
@@ -92,7 +92,7 @@ Sending batch tasks (such as offline document classification, embeddings, synthe
 ### The Abstract Solution: Unified Batch Abstraction
 A single asynchronous batch interface that transparently uploads requests, tracks vendor batch jobs, polls for completion, and downloads results.
 
-### How We Solve It: `llm-proxy` Batch API
+### How We Solve It: KTMS Batch API
 * Submit bulk jobs with `SubmitBatch` and retrieve status and itemized outputs with `GetBatch` and `ListBatchResults`.
 * Works consistently across providers while securing the 50% batch discount automatically.
 
@@ -100,7 +100,7 @@ A single asynchronous batch interface that transparently uploads requests, track
 
 ## Summary Matrix
 
-| Challenge | Abstract Solution | In `llm-proxy` / `tokenmeter` |
+| Challenge | Abstract Solution | In KTMS / `tokenmeter` |
 | :--- | :--- | :--- |
 | **Vendor Lock-in** | Universal Gateway & Intent Routing | gRPC & `/v1` endpoints, `EFFORT_*` rules |
 | **Outages & 429s** | Fallback Chains & Local Rate Limits | Auto-fallback across vendors, Redis RPM limits |
@@ -118,6 +118,6 @@ We'll write about architecture decisions, feature releases and production deep d
 * Structured JSON generation guarantees across diverse providers.
 
 Explore the projects and star them on GitHub:
-* [github.com/ai-process/llm-proxy](https://github.com/ai-process/llm-proxy)
+* [github.com/ai-process/ktms](https://github.com/ai-process/ktms)
 * [github.com/ai-process/light-tokenmeter](https://github.com/ai-process/light-tokenmeter)
-* [github.com/ai-process/llm-proxy-admin](https://github.com/ai-process/llm-proxy-admin)
+* [github.com/ai-process/ktms-admin](https://github.com/ai-process/ktms-admin)

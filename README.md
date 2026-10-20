@@ -1,8 +1,8 @@
-# llm-proxy Dev Blog
+# KTMS Dev Blog
 
 [![Deploy GitHub Pages](https://github.com/ai-process/blog/actions/workflows/deploy.yml/badge.svg)](https://github.com/ai-process/blog/actions/workflows/deploy.yml)
 
-The official engineering blog for [**llm-proxy**](https://github.com/ai-process/llm-proxy), [**light-tokenmeter**](https://github.com/ai-process/light-tokenmeter), and the AI Process infrastructure ecosystem.
+The official engineering blog for [**KTMS**](https://github.com/ai-process/ktms), [**light-tokenmeter**](https://github.com/ai-process/light-tokenmeter), and the AI Process infrastructure ecosystem.
 
 Live site: [**https://ai-process.github.io/blog/**](https://ai-process.github.io/blog/)
 
@@ -30,7 +30,7 @@ date: YYYY-MM-DD HH:MM:SS +0000
 reading_time: 5
 tags:
   - architecture
-  - llm-proxy
+  - ktms
   - tokenmeter
 description: "Brief summary of the article."
 ---
