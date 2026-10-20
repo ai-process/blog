@@ -66,7 +66,7 @@ Vendor credentials should live in a single encrypted vault accessible only to th
 ## 4. "Token Shock" and Opaque Spend Attribution
 
 ### The Problem
-A runaway agent loop or an unoptimized prompt can exhaust thousands of dollars in minutes. Upstream provider dashboards show aggregated spend hours after it occurred and provide zero insight into your internal business context: *Which tenant spent this? Which feature caused the spike? Did that call succeed?*
+A runaway agent loop or an unoptimized prompt can burn through a budget before anyone notices. Upstream provider dashboards show aggregated spend hours after it occurred and provide zero insight into your internal business context: *Which tenant spent this? Which feature caused the spike? Did that call succeed?*
 
 ### The Abstract Solution: Pre-Flight Guardrails + Asynchronous Telemetry
 * **Pre-flight verification:** Check user or project quotas before dispatching expensive generations.
@@ -112,8 +112,8 @@ A single asynchronous batch interface that transparently uploads requests, track
 
 ## What's Next?
 
-This blog will be published **every 2 days** whenever there are architectural news, feature releases, or production deep dives. Upcoming posts will include:
-* Setting up multi-vendor fallback chains in under 5 minutes.
+We'll write about architecture decisions, feature releases and production deep dives. Upcoming posts will include:
+* Setting up multi-vendor fallback chains.
 * Architecting ClickHouse-backed token telemetry with `light-tokenmeter`.
 * Structured JSON generation guarantees across diverse providers.
 
