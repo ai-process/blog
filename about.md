@@ -5,13 +5,13 @@ title: About
 
 <article class="post">
   <header class="post-header">
-    <h1 class="post-title">About the llm-proxy Dev Blog</h1>
+    <h1 class="post-title">About the KTMS Dev Blog</h1>
     <p class="post-subtitle">Our mission, cadence, and open-source tooling.</p>
   </header>
 
   <div class="post-content">
     <p>
-      Welcome to the official engineering blog for <strong>llm-proxy</strong>, <strong>light-tokenmeter</strong>, and associated AI process infrastructure tools.
+      Welcome to the official engineering blog for <strong>KTMS</strong>, <strong>light-tokenmeter</strong>, and associated AI process infrastructure tools.
     </p>
 
     <h2>Why this blog?</h2>
@@ -30,7 +30,7 @@ title: About
     <h2>Our Open Source Ecosystem</h2>
     <ul>
       <li>
-        <a href="https://github.com/ai-process/llm-proxy" target="_blank" rel="noopener"><strong>llm-proxy</strong></a>:
+        <a href="https://github.com/ai-process/ktms" target="_blank" rel="noopener"><strong>KTMS</strong></a>:
         A self-hosted gRPC and HTTP gateway. Provides AES-256 encrypted vendor keys, effort-based runtime routing, multi-provider fallback chains, token/request rate limits, and batch execution.
       </li>
       <li>
@@ -38,7 +38,7 @@ title: About
         A lightweight telemetry service (Postgres &amp; ClickHouse) answering <em>"who is spending your tokens, and are they worth it?"</em> with multi-dimensional filtering by user, project, model, and action.
       </li>
       <li>
-        <a href="https://github.com/ai-process/llm-proxy-admin" target="_blank" rel="noopener"><strong>llm-proxy-admin</strong></a>:
+        <a href="https://github.com/ai-process/ktms-admin" target="_blank" rel="noopener"><strong>ktms-admin</strong></a>:
         A web console to configure models, keys, and routing rules live without redeploying services.
       </li>
     </ul>
