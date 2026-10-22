@@ -1,8 +1,8 @@
 # Site settings
 title: KTMS Dev Blog
 description: Engineering notes, production architecture patterns, and updates from the KTMS and tokenmeter team.
-url: "https://ai-process.github.io"
-baseurl: "/blog"
+url: "https://blog.ai-process.dev"
+baseurl: ""
 
 # Author & social
 author:
