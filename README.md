@@ -4,7 +4,7 @@
 
 The official engineering blog for [**KTMS**](https://github.com/ai-process/ktms), [**light-tokenmeter**](https://github.com/ai-process/light-tokenmeter), and the AI Process infrastructure ecosystem.
 
-Live site: [**https://ai-process.github.io/blog/**](https://ai-process.github.io/blog/)
+Live site: [**https://blog.ai-process.dev**](https://blog.ai-process.dev/)
 
 ## Publication Cadence & Policy
 
