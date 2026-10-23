@@ -1,6 +1,6 @@
 # Site settings
-title: KTMS Dev Blog
-description: Engineering notes, production architecture patterns, and updates from the KTMS and tokenmeter team.
+title: Keystone (KTMS) Dev Blog
+description: Engineering notes, production architecture patterns, and updates from the team behind Keystone (KTMS), light-tokenmeter and ktms-admin.
 url: "https://blog.ai-process.dev"
 baseurl: ""
 
