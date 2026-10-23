@@ -5,13 +5,13 @@ title: About
 
 <article class="post">
   <header class="post-header">
-    <h1 class="post-title">About the KTMS Dev Blog</h1>
+    <h1 class="post-title">About the Keystone. The Model Switchboard. (KTMS) Dev Blog</h1>
     <p class="post-subtitle">Our mission, cadence, and open-source tooling.</p>
   </header>
 
   <div class="post-content">
     <p>
-      Welcome to the official engineering blog for <strong>KTMS</strong>, <strong>light-tokenmeter</strong>, and associated AI process infrastructure tools.
+      Welcome to the official engineering blog for <strong>Keystone. The Model Switchboard. (KTMS)</strong>, <strong>light-tokenmeter</strong>, <strong>ktms-admin</strong> and the rest of the ai-process infrastructure.
     </p>
 
     <h2>Why this blog?</h2>
@@ -30,7 +30,7 @@ title: About
     <h2>Our Open Source Ecosystem</h2>
     <ul>
       <li>
-        <a href="https://github.com/ai-process/ktms" target="_blank" rel="noopener"><strong>KTMS</strong></a>:
+        <a href="https://github.com/ai-process/ktms" target="_blank" rel="noopener"><strong>Keystone (KTMS)</strong></a>:
         A self-hosted gRPC and HTTP gateway. Provides AES-256 encrypted vendor keys, effort-based runtime routing, multi-provider fallback chains, token/request rate limits, and batch execution.
       </li>
       <li>
