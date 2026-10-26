@@ -130,17 +130,6 @@ body {
   color: var(--text-muted);
 }
 
-.cadence-badge {
-  display: inline-block;
-  margin-top: 14px;
-  font-size: 0.85rem;
-  color: var(--accent-color);
-  background-color: var(--bg-surface);
-  border: 1px solid var(--border-color);
-  padding: 4px 12px;
-  border-radius: 16px;
-}
-
 .posts-list {
   display: flex;
   flex-direction: column;

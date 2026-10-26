@@ -6,7 +6,7 @@ title: About
 <article class="post">
   <header class="post-header">
     <h1 class="post-title">About the Keystone. The Model Switchboard. (KTMS) Dev Blog</h1>
-    <p class="post-subtitle">Our mission, cadence, and open-source tooling.</p>
+    <p class="post-subtitle">Our mission and open-source tooling.</p>
   </header>
 
   <div class="post-content">
@@ -19,7 +19,7 @@ title: About
       Running LLMs reliably at scale requires moving beyond naive SDK wrappers. Teams face hard production hurdles: multi-provider failover, credential isolation, latency unpredictability, strict cost attribution, and runaway token consumption.
     </p>
     <p>
-      We publish an educative post <strong>every 2 days</strong> (whenever there is news, releases, or architectural topics) focusing on:
+      We publish educative posts on news, releases and architecture, focusing on:
     </p>
     <ul>
       <li><strong>Educative teardowns:</strong> Deep dives into resilience patterns, load balancing, caching, batch processing, and telemetry.</li>
