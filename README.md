@@ -6,9 +6,8 @@ The official engineering blog for [**KTMS**](https://github.com/ai-process/ktms)
 
 Live site: [**https://blog.ai-process.dev**](https://blog.ai-process.dev/)
 
-## Publication Cadence & Policy
+## Publication Policy
 
-- **Cadence:** We publish a new post every **2 days** whenever there is news, releases, or architectural insights.
 - **Tone:** Practical, educational, and grounded in real-world production engineering.
 - **Standard format:** Each post addresses a core problem or concept (abstract overview) followed by concrete implementation patterns and references to our open-source tools.
 
