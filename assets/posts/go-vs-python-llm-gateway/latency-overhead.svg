@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 276" width="760" height="276" role="img" aria-label="Latency added by the gateway" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif">
+<rect width="100%" height="100%" fill="#ffffff"/>
+<text x="24" y="34" font-size="18" text-anchor="start" font-weight="600" fill="#0f172a">Latency added by the gateway</text>
+<text x="24" y="56" font-size="12" text-anchor="start" font-weight="normal" fill="#475569">Non-streaming requests at 200 RPS, 0 ms upstream; gateway minus direct call.</text>
+<rect x="190" y="72" width="12" height="12" rx="2" fill="#0f766e"/>
+<text x="208" y="82" font-size="12" text-anchor="start" font-weight="normal" fill="#334155">KTMS (Go)</text>
+<rect x="279" y="72" width="12" height="12" rx="2" fill="#c2410c"/>
+<text x="297" y="82" font-size="12" text-anchor="start" font-weight="normal" fill="#334155">LiteLLM (Python, 4 workers)</text>
+<text x="24" y="134.0" font-size="13" text-anchor="start" font-weight="600" fill="#334155">p50</text>
+<rect x="190" y="104" width="2.3" height="20" rx="3" fill="#0f766e"/>
+<text x="200.25041728407382" y="119" font-size="12" text-anchor="start" font-weight="normal" fill="#0f172a">0.64 ms</text>
+<rect x="190" y="130" width="29.8" height="20" rx="3" fill="#c2410c"/>
+<text x="227.80756126637502" y="145" font-size="12" text-anchor="start" font-weight="normal" fill="#0f172a">8.46 ms</text>
+<text x="24" y="204.0" font-size="13" text-anchor="start" font-weight="600" fill="#334155">p99</text>
+<rect x="190" y="174" width="3.8" height="20" rx="3" fill="#0f766e"/>
+<text x="201.76134021055634" y="189" font-size="12" text-anchor="start" font-weight="normal" fill="#0f172a">1.07 ms</text>
+<rect x="190" y="200" width="450.0" height="20" rx="3" fill="#c2410c"/>
+<text x="648.0" y="215" font-size="12" text-anchor="start" font-weight="normal" fill="#0f172a">128 ms</text>
+<text x="24" y="260" font-size="11" text-anchor="start" font-weight="normal" fill="#64748b">Mean of two runs on GCP c3-standard-4 (4 vCPU), LiteLLM v1.106.0, mock upstream.</text>
+</svg>
