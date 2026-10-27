@@ -1,0 +1,71 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 420" width="760" height="420" role="img" aria-label="Throughput under stepped load" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif">
+<rect width="100%" height="100%" fill="#ffffff"/>
+<text x="24" y="34" font-size="18" text-anchor="start" font-weight="600" fill="#0f172a">Throughput under stepped load</text>
+<text x="24" y="56" font-size="12" text-anchor="start" font-weight="normal" fill="#475569">Achieved vs offered requests per second, 10 ms mock upstream, 20 s per step. Labels: share of failed requests.</text>
+<rect x="80" y="72" width="12" height="12" rx="2" fill="#94a3b8"/>
+<text x="98" y="82" font-size="12" text-anchor="start" font-weight="normal" fill="#334155">Direct (no gateway)</text>
+<rect x="239" y="72" width="12" height="12" rx="2" fill="#0f766e"/>
+<text x="257" y="82" font-size="12" text-anchor="start" font-weight="normal" fill="#334155">KTMS (Go)</text>
+<rect x="328" y="72" width="12" height="12" rx="2" fill="#c2410c"/>
+<text x="346" y="82" font-size="12" text-anchor="start" font-weight="normal" fill="#334155">LiteLLM (Python, 4 workers)</text>
+<line x1="80" y1="350.0" x2="720" y2="350.0" stroke="#e2e8f0"/>
+<text x="72" y="354.0" font-size="11" text-anchor="end" font-weight="normal" fill="#64748b">0</text>
+<text x="80.0" y="368" font-size="11" text-anchor="middle" font-weight="normal" fill="#64748b">0</text>
+<line x1="80" y1="321.6" x2="720" y2="321.6" stroke="#e2e8f0"/>
+<text x="72" y="325.5909090909091" font-size="11" text-anchor="end" font-weight="normal" fill="#64748b">500</text>
+<text x="152.72727272727272" y="368" font-size="11" text-anchor="middle" font-weight="normal" fill="#64748b">500</text>
+<line x1="80" y1="293.2" x2="720" y2="293.2" stroke="#e2e8f0"/>
+<text x="72" y="297.1818181818182" font-size="11" text-anchor="end" font-weight="normal" fill="#64748b">1000</text>
+<text x="225.45454545454544" y="368" font-size="11" text-anchor="middle" font-weight="normal" fill="#64748b">1000</text>
+<line x1="80" y1="264.8" x2="720" y2="264.8" stroke="#e2e8f0"/>
+<text x="72" y="268.77272727272725" font-size="11" text-anchor="end" font-weight="normal" fill="#64748b">1500</text>
+<text x="298.18181818181813" y="368" font-size="11" text-anchor="middle" font-weight="normal" fill="#64748b">1500</text>
+<line x1="80" y1="236.4" x2="720" y2="236.4" stroke="#e2e8f0"/>
+<text x="72" y="240.36363636363637" font-size="11" text-anchor="end" font-weight="normal" fill="#64748b">2000</text>
+<text x="370.9090909090909" y="368" font-size="11" text-anchor="middle" font-weight="normal" fill="#64748b">2000</text>
+<line x1="80" y1="208.0" x2="720" y2="208.0" stroke="#e2e8f0"/>
+<text x="72" y="211.95454545454544" font-size="11" text-anchor="end" font-weight="normal" fill="#64748b">2500</text>
+<text x="443.6363636363637" y="368" font-size="11" text-anchor="middle" font-weight="normal" fill="#64748b">2500</text>
+<line x1="80" y1="179.5" x2="720" y2="179.5" stroke="#e2e8f0"/>
+<text x="72" y="183.54545454545456" font-size="11" text-anchor="end" font-weight="normal" fill="#64748b">3000</text>
+<text x="516.3636363636363" y="368" font-size="11" text-anchor="middle" font-weight="normal" fill="#64748b">3000</text>
+<line x1="80" y1="151.1" x2="720" y2="151.1" stroke="#e2e8f0"/>
+<text x="72" y="155.13636363636365" font-size="11" text-anchor="end" font-weight="normal" fill="#64748b">3500</text>
+<text x="589.090909090909" y="368" font-size="11" text-anchor="middle" font-weight="normal" fill="#64748b">3500</text>
+<line x1="80" y1="122.7" x2="720" y2="122.7" stroke="#e2e8f0"/>
+<text x="72" y="126.72727272727275" font-size="11" text-anchor="end" font-weight="normal" fill="#64748b">4000</text>
+<text x="661.8181818181818" y="368" font-size="11" text-anchor="middle" font-weight="normal" fill="#64748b">4000</text>
+<text x="400.0" y="390" font-size="12" text-anchor="middle" font-weight="normal" fill="#334155">Offered RPS</text>
+<text x="24" y="225.0" font-size="12" text-anchor="start" font-weight="normal" fill="#334155">Achieved</text>
+<polyline points="116.4,335.8 152.7,321.6 225.5,293.2 298.2,264.8 370.9,236.4 516.4,179.5 661.8,122.7" fill="none" stroke="#94a3b8" stroke-width="3" stroke-dasharray="6 4"/>
+<circle cx="116.4" cy="335.8" r="4.5" fill="#94a3b8"/>
+<circle cx="152.7" cy="321.6" r="4.5" fill="#94a3b8"/>
+<circle cx="225.5" cy="293.2" r="4.5" fill="#94a3b8"/>
+<circle cx="298.2" cy="264.8" r="4.5" fill="#94a3b8"/>
+<circle cx="370.9" cy="236.4" r="4.5" fill="#94a3b8"/>
+<circle cx="516.4" cy="179.5" r="4.5" fill="#94a3b8"/>
+<circle cx="661.8" cy="122.7" r="4.5" fill="#94a3b8"/>
+<polyline points="116.4,335.8 152.7,321.6 225.5,293.2 298.2,264.8 370.9,236.4 516.4,179.5 661.8,122.8" fill="none" stroke="#0f766e" stroke-width="3"/>
+<circle cx="116.4" cy="335.8" r="4.5" fill="#0f766e"/>
+<circle cx="152.7" cy="321.6" r="4.5" fill="#0f766e"/>
+<circle cx="225.5" cy="293.2" r="4.5" fill="#0f766e"/>
+<circle cx="298.2" cy="264.8" r="4.5" fill="#0f766e"/>
+<circle cx="370.9" cy="236.4" r="4.5" fill="#0f766e"/>
+<circle cx="516.4" cy="179.5" r="4.5" fill="#0f766e"/>
+<circle cx="661.8" cy="122.8" r="4.5" fill="#0f766e"/>
+<polyline points="116.4,335.8 152.7,325.0 225.5,317.3 298.2,317.7 370.9,317.4 516.4,317.5 661.8,317.3" fill="none" stroke="#c2410c" stroke-width="3"/>
+<circle cx="116.4" cy="335.8" r="4.5" fill="#c2410c"/>
+<circle cx="152.7" cy="325.0" r="4.5" fill="#c2410c"/>
+<text x="152.72727272727272" y="344.9573863636364" font-size="11" text-anchor="middle" font-weight="normal" fill="#c2410c">35.0% failed</text>
+<circle cx="225.5" cy="317.3" r="4.5" fill="#c2410c"/>
+<text x="225.45454545454544" y="337.3323863636364" font-size="11" text-anchor="middle" font-weight="normal" fill="#c2410c">51.7% failed</text>
+<circle cx="298.2" cy="317.7" r="4.5" fill="#c2410c"/>
+<text x="298.18181818181813" y="337.7244318181818" font-size="11" text-anchor="middle" font-weight="normal" fill="#c2410c">52.3% failed</text>
+<circle cx="370.9" cy="317.4" r="4.5" fill="#c2410c"/>
+<text x="370.9090909090909" y="337.3934659090909" font-size="11" text-anchor="middle" font-weight="normal" fill="#c2410c">51.8% failed</text>
+<circle cx="516.4" cy="317.5" r="4.5" fill="#c2410c"/>
+<text x="516.3636363636363" y="337.5" font-size="11" text-anchor="middle" font-weight="normal" fill="#c2410c">52.0% failed</text>
+<circle cx="661.8" cy="317.3" r="4.5" fill="#c2410c"/>
+<text x="661.8181818181818" y="337.2755681818182" font-size="11" text-anchor="middle" font-weight="normal" fill="#c2410c">51.6% failed</text>
+<text x="24" y="404" font-size="11" text-anchor="start" font-weight="normal" fill="#64748b">KTMS kept up with every step up to 4,000 RPS, the highest tested. Mean of two runs on GCP c3-standard-4.</text>
+</svg>

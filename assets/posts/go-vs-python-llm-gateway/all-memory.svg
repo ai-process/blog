@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 760 392" width="760" height="392" role="img" aria-label="Memory at a steady 200 RPS, ten gateways" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif">
+<rect width="100%" height="100%" fill="#ffffff"/>
+<text x="24" y="34" font-size="18" text-anchor="start" font-weight="600" fill="#0f172a">Memory at a steady 200 RPS, ten gateways</text>
+<text x="24" y="56" font-size="12" text-anchor="start" font-weight="normal" fill="#475569">cgroup RSS of the gateway container during a 5-minute soak.</text>
+<text x="24" y="95" font-size="13" text-anchor="start" font-weight="normal" fill="#334155">agentgateway</text>
+<rect x="190" y="80" width="27.0" height="20" rx="3" fill="#64748b"/>
+<text x="224.99997364099409" y="95" font-size="12" text-anchor="start" font-weight="normal" fill="#0f172a">13.2 MiB</text>
+<text x="24" y="121" font-size="13" text-anchor="start" font-weight="600" fill="#334155">KTMS</text>
+<rect x="190" y="106" width="60.3" height="20" rx="3" fill="#0f766e"/>
+<text x="258.3382378785722" y="121" font-size="12" text-anchor="start" font-weight="normal" fill="#0f172a">20.2 MiB</text>
+<text x="24" y="147" font-size="13" text-anchor="start" font-weight="normal" fill="#334155">New API</text>
+<rect x="190" y="132" width="127.1" height="20" rx="3" fill="#64748b"/>
+<text x="325.10674912828006" y="147" font-size="12" text-anchor="start" font-weight="normal" fill="#0f172a">47.4 MiB</text>
+<text x="24" y="173" font-size="13" text-anchor="start" font-weight="normal" fill="#334155">Portkey</text>
+<rect x="190" y="158" width="204.9" height="20" rx="3" fill="#64748b"/>
+<text x="402.9005048392663" y="173" font-size="12" text-anchor="start" font-weight="normal" fill="#0f172a">128.2 MiB</text>
+<text x="24" y="199" font-size="13" text-anchor="start" font-weight="normal" fill="#334155">Envoy AI Gateway</text>
+<rect x="190" y="184" width="213.9" height="20" rx="3" fill="#64748b"/>
+<text x="411.86285098141275" y="199" font-size="12" text-anchor="start" font-weight="normal" fill="#0f172a">143.8 MiB</text>
+<text x="24" y="225" font-size="13" text-anchor="start" font-weight="normal" fill="#334155">Apache APISIX</text>
+<rect x="190" y="210" width="215.1" height="20" rx="3" fill="#64748b"/>
+<text x="413.0932884578858" y="225" font-size="12" text-anchor="start" font-weight="normal" fill="#0f172a">146.1 MiB</text>
+<text x="24" y="251" font-size="13" text-anchor="start" font-weight="normal" fill="#334155">Bifrost</text>
+<rect x="190" y="236" width="231.6" height="20" rx="3" fill="#64748b"/>
+<text x="429.6083898331795" y="251" font-size="12" text-anchor="start" font-weight="normal" fill="#0f172a">180.4 MiB</text>
+<text x="24" y="277" font-size="13" text-anchor="start" font-weight="normal" fill="#334155">Higress</text>
+<rect x="190" y="262" width="291.9" height="20" rx="3" fill="#64748b"/>
+<text x="489.93560251050707" y="277" font-size="12" text-anchor="start" font-weight="normal" fill="#0f172a">390.4 MiB</text>
+<text x="24" y="303" font-size="13" text-anchor="start" font-weight="normal" fill="#334155">Kong AI Gateway</text>
+<rect x="190" y="288" width="315.3" height="20" rx="3" fill="#64748b"/>
+<text x="513.3403562477549" y="303" font-size="12" text-anchor="start" font-weight="normal" fill="#0f172a">526.7 MiB</text>
+<text x="24" y="329" font-size="13" text-anchor="start" font-weight="normal" fill="#334155">LiteLLM</text>
+<rect x="190" y="314" width="450.0" height="20" rx="3" fill="#c2410c"/>
+<text x="648.0" y="329" font-size="12" text-anchor="start" font-weight="normal" fill="#0f172a">2.88 GiB</text>
+<text x="24" y="376" font-size="11" text-anchor="start" font-weight="normal" fill="#64748b">Mean of two runs on GCP c3-standard-4 (4 vCPU); each gateway alone, mock upstream. Log scale.</text>
+</svg>
