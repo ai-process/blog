@@ -19,11 +19,13 @@ permalink: /:year/:month/:day/:title/
 plugins:
   - jekyll-feed
   - jekyll-seo-tag
+  - jekyll-sitemap
 
 # Exclude from build
 exclude:
   - Gemfile
   - Gemfile.lock
   - README.md
+  - AGENTS.md
   - LICENSE
   - vendor/
