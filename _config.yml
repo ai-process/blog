@@ -3,6 +3,8 @@ title: Keystone (KTMS) Dev Blog
 description: Engineering notes, production architecture patterns, and updates from the team behind Keystone (KTMS), light-tokenmeter and ktms-admin.
 url: "https://blog.ai-process.dev"
 baseurl: ""
+# GA4 stream shared with ai-process.dev so site↔blog visits stay one journey.
+google_analytics: G-PPG80T8NQW
 
 # Author & social
 author:
