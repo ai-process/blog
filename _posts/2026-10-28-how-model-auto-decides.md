@@ -11,6 +11,10 @@ tags:
 description: "Inside Keystone's auto-routing: how a decision model rates a prompt's difficulty, why it gets 250 ms, what happens when it is slow, and how to keep control with pinned efforts."
 ---
 
+> **Update for Keystone 1.7:** effort is replaced by needs and model competencies: a request says
+> `needs: {medical: basic}` and Keystone picks a model that can do it, the closest fit first. Effort still works
+> as the topic `general`. See [Keystone 1.7](/2026/11/26/keystone-1-7/).
+
 ![How hard is this prompt?](/assets/posts/how-model-auto-decides/cover.jpg)
 
 **"What time is it?" and "prove that √2 is irrational" arrive in the same chat box, a minute
