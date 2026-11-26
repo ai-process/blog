@@ -13,7 +13,7 @@ description: "Inside Keystone's auto-routing: how a decision model rates a promp
 
 > **Update for Keystone 1.7:** effort is replaced by needs and model competencies: a request says
 > `needs: {medical: basic}` and Keystone picks a model that can do it, the closest fit first. Effort still works
-> as the topic `general`. See [Keystone 1.7](/2026/12/XX/keystone-1-7/). <!-- set the date of the 1.7 post -->
+> as the topic `general`. See [Keystone 1.7](/2026/11/26/keystone-1-7/).
 
 ![How hard is this prompt?](/assets/posts/how-model-auto-decides/cover.jpg)
 
